@@ -1,0 +1,24 @@
+{
+  "name": "Daily Writer",
+  "short_name": "Daily Writer",
+  "description": "Write at least 100 words every day.",
+  "start_url": "/daily-writer/",
+  "scope": "/daily-writer/",
+  "display": "standalone",
+  "background_color": "#fafaf8",
+  "theme_color": "#fafaf8",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

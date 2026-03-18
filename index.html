@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Writer</title>
+<link rel="manifest" href="/daily-writer/manifest.json">
+<meta name="theme-color" content="#fafaf8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Daily Writer">
+<link rel="apple-touch-icon" href="/daily-writer/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --text: #1a1a18;
+    --muted: #888780;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --success: #3B6D11;
+    --success-bg: #EAF3DE;
+    --radius: 8px;
+    --mono: 'JetBrains Mono', monospace;
+    --ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #242422;
+      --text: #f0ede6;
+      --muted: #888780;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.18);
+      --success: #97C459;
+      --success-bg: rgba(99,153,34,0.15);
+    }
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--ui);
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .app-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .date-display {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .db-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    transition: background 0.15s;
+  }
+
+  .db-status:hover { background: var(--border); }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .dot.connected { background: var(--success); }
+
+  .streak-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+
+  .streak-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .done-today {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--success);
+  }
+
+  .done-today.visible { display: flex; }
+
+  .prompt-area {
+    margin-bottom: 1.75rem;
+  }
+
+  .prompt-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+
+  .prompt-text {
+    font-family: var(--mono);
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .prompt-skip {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--border-strong);
+  }
+
+  .prompt-skip:hover { color: var(--text); }
+
+  textarea {
+    width: 100%;
+    min-height: 340px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.8;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    caret-color: var(--text);
+    margin-bottom: 1.25rem;
+  }
+
+  textarea:focus {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px var(--border);
+  }
+
+  textarea::placeholder { color: var(--muted); }
+
+  .wc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .wc-bar-wrap {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .wc-bar {
+    height: 100%;
+    background: var(--muted);
+    border-radius: 2px;
+    transition: width 0.3s ease, background 0.4s ease;
+    width: 0%;
+  }
+
+  .wc-bar.done { background: var(--success); }
+
+  .wc-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 60px;
+    text-align: right;
+    transition: color 0.3s;
+  }
+
+  .wc-label.done { color: var(--success); }
+
+  .fanfare {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--success-bg);
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--success);
+    animation: slideIn 0.4s ease;
+  }
+
+  .fanfare.visible { display: flex; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  button.action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button.action:hover { background: var(--border); }
+  button.action:active { transform: scale(0.98); }
+  button.action:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  button.action.primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  button.action.primary:hover { opacity: 0.85; }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--text);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 9px 18px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 1.75rem;
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .modal h2 {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  .modal p, .modal li {
+    font-family: var(--ui);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .modal ol { padding-left: 1.25rem; margin-bottom: 1rem; }
+  .modal ol li { margin-bottom: 0.4rem; }
+  .modal a { color: var(--text); }
+
+  .modal code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg);
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 0.5px solid var(--border-strong);
+  }
+
+  .redirect-box {
+    font-family: var(--mono);
+    font-size: 11px;
+    word-break: break-all;
+    display: block;
+    margin-top: 4px;
+    padding: 6px 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    border: 0.5px solid var(--border-strong);
+    color: var(--text);
+  }
+
+  .modal input[type="text"] {
+    width: 100%;
+    padding: 9px 12px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 1rem;
+  }
+
+  .modal input:focus { box-shadow: 0 0 0 3px var(--border); }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-left">
+      <span class="app-title">daily writer</span>
+      <span class="date-display" id="dateDisplay"></span>
+    </div>
+    <button class="db-status" id="dbStatusBtn" onclick="openSetup()">
+      <span class="dot" id="dbDot"></span>
+      <span id="dbStatusLabel">connect dropbox</span>
+    </button>
+  </div>
+
+  <div class="streak-row">
+    <div class="streak-chip" id="dayOfYear"></div>
+    <div class="done-today" id="doneTodayBadge">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <circle cx="6.5" cy="6.5" r="6" stroke="var(--success)" stroke-width="1"/>
+        <polyline points="3.5,7 5.5,9 9.5,4.5" stroke="var(--success)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      done today
+    </div>
+  </div>
+
+  <div class="prompt-area">
+    <div class="prompt-label">today's prompt</div>
+    <div class="prompt-text" id="promptText">Loading…</div>
+    <button class="prompt-skip" onclick="ignorePrompt()">ignore — write freely</button>
+  </div>
+
+  <textarea id="editor" placeholder="Start writing…" oninput="onEdit()" spellcheck="true"></textarea>
+
+  <div class="wc-row">
+    <div class="wc-bar-wrap"><div class="wc-bar" id="wcBar"></div></div>
+    <div class="wc-label" id="wcLabel">0 / 100</div>
+  </div>
+
+  <div class="fanfare" id="fanfare">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+      <circle cx="6.5" cy="6.5" r="6" stroke="var(--success)" stroke-width="1"/>
+      <polyline points="3.5,7 5.5,9 9.5,4.5" stroke="var(--success)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    100 words. entry complete.
+  </div>
+
+  <div class="actions">
+    <button class="action primary" id="saveBtn" onclick="saveToDropbox()" disabled>save to dropbox</button>
+    <button class="action" onclick="copyText()">copy</button>
+    <button class="action" onclick="downloadTxt()">download .txt</button>
+  </div>
+
+</div>
+
+<div class="overlay" id="setupOverlay">
+  <div class="modal">
+    <h2>connect dropbox</h2>
+    <p>Your App Key is stored locally in your browser only — nothing is sent anywhere except Dropbox.</p>
+    <ol>
+      <li>Go to <a href="https://www.dropbox.com/developers/apps" target="_blank">dropbox.com/developers/apps</a></li>
+      <li>Create app → Scoped access → Full Dropbox → any name</li>
+      <li>In <strong>Permissions</strong>: enable <code>files.content.write</code> and <code>files.content.read</code></li>
+      <li>In <strong>Settings</strong>, add this as a Redirect URI:<br>
+        <span class="redirect-box" id="redirectUriDisplay"></span>
+      </li>
+      <li>Copy your <strong>App key</strong> and paste below</li>
+    </ol>
+    <input type="text" id="appKeyInput" placeholder="App key" />
+    <div class="modal-actions">
+      <button class="action" onclick="closeSetup()">cancel</button>
+      <button class="action primary" onclick="startAuth()">authorize with dropbox</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DROPBOX_FOLDER = '/docs/writings/Everyday Writings/2026';
+
+const PROMPTS = [
+  // Jan
+  "What do you want most from this year?",
+  "Describe a place that made you feel at home.",
+  "Write about a meal you'll never forget.",
+  "What's something you've been avoiding thinking about?",
+  "A moment when you felt unexpectedly proud.",
+  "What does a perfect morning look like to you?",
+  "Write about someone who shaped who you are.",
+  "What's a belief you've changed your mind about?",
+  "Describe a city through its sounds.",
+  "What's something small that consistently makes you happy?",
+  "Write about the last time you were genuinely surprised.",
+  "What does home mean to you right now?",
+  "A skill you wish you'd started learning earlier.",
+  "Write about a decision you made on instinct.",
+  "What are you most looking forward to this year?",
+  "Describe a stranger who stuck in your memory.",
+  "What would you do with a completely free day?",
+  "Write about a time you felt out of place.",
+  "What's something you do that you can't fully explain?",
+  "Describe a walk you've taken more than once.",
+  "What's a question you keep coming back to?",
+  "Write about something beautiful you almost missed.",
+  "A habit you want to build — and why.",
+  "What do you know now that your younger self didn't?",
+  "Write about a piece of music that changed something in you.",
+  "Describe a season you love — be specific.",
+  "What's a risk you're glad you took?",
+  "Write about something you're learning to let go of.",
+  "What does a good day feel like from the inside?",
+  "Describe a neighborhood you've spent time in.",
+  "Write about something you're still figuring out.",
+  // Feb
+  "What's a small pleasure you've started taking seriously?",
+  "Write about a conversation that shifted your thinking.",
+  "What are you carrying that isn't yours to carry?",
+  "Describe a moment of unexpected kindness.",
+  "What's something you want to understand better?",
+  "Write about a place you haven't been but think about.",
+  "What does creativity feel like when it's working?",
+  "A person you'd like to spend a day with — and why.",
+  "Write about an ordinary object with an unusual meaning.",
+  "What's something you've made that you're proud of?",
+  "Describe the view from somewhere you love.",
+  "What's a story you tell about yourself that might not be true?",
+  "Write about the last time you felt completely present.",
+  "What do you want to be better at by end of year?",
+  "Describe a friendship that changed shape over time.",
+  "Write about a moment when silence said more than words.",
+  "What's something you've started that you haven't finished?",
+  "Describe a smell that takes you somewhere.",
+  "Write about a book, film, or album that arrived at the right time.",
+  "What's the most honest version of your current life?",
+  "A day you'd like to live again.",
+  "Write about something you're looking forward to learning.",
+  "What does discipline look like for you?",
+  "Describe a light — any light that matters to you.",
+  "Write about a time you were wrong and had to reckon with it.",
+  "What's your relationship with routine right now?",
+  "Describe the best version of a city you've lived in.",
+  "Write about something that aged well.",
+  // Mar
+  "What's a word you keep returning to lately?",
+  "Write about a threshold — a moment between two things.",
+  "What do you find harder than you expected?",
+  "Describe a photograph you wish existed.",
+  "Write about something you've inherited — not necessarily an object.",
+  "What's one thing you want to protect this year?",
+  "Write about a time you showed up for someone.",
+  "What does peace feel like in your body?",
+  "Describe a place you'd like to spend a month.",
+  "Write about a skill that took longer than it should have.",
+  "What's a question you'd ask your future self?",
+  "Write about the first time you felt like an adult.",
+  "What's something you do better alone?",
+  "Describe the neighborhood you want to be in five years from now.",
+  "Write about a moment you're glad nobody saw.",
+  "What's something you return to when you need grounding?",
+  "Write about a mentor — real or accidental.",
+  "What's something you're slowly getting better at accepting?",
+  "Describe a time you said exactly the right thing.",
+  "Write about a sound that doesn't exist anymore.",
+  "What's something you want to read before the year ends?",
+  "Write about a city that surprised you.",
+  "What does it feel like to be between chapters?",
+  "Describe a morning ritual — yours or someone else's.",
+  "Write about something you keep meaning to say.",
+  "What's something that makes you feel capable?",
+  "Write about a relationship that required patience.",
+  "What does it mean to be a good neighbor?",
+  "Describe a texture — make it strange and specific.",
+  "Write about something you used to be certain of.",
+  "What are you practicing right now?",
+  // Apr
+  "Write about a beginning.",
+  "What's something you've rediscovered?",
+  "Describe a city in a single hour.",
+  "Write about a time a stranger helped you.",
+  "What's something you love that's hard to defend?",
+  "Write about a smell in a market or kitchen.",
+  "What do you carry in your pockets or bag that says something about you?",
+  "Describe an afternoon with nowhere to be.",
+  "Write about a lesson you keep having to relearn.",
+  "What's something you're growing toward?",
+  "Write about a place you can think clearly.",
+  "What does a good question sound like?",
+  "Describe the last thing that made you laugh properly.",
+  "Write about a language barrier — or a moment of translation.",
+  "What's something you protect that others might not understand?",
+  "Write about an object that survived everything.",
+  "What's a city you want to understand better?",
+  "Describe something ephemeral that mattered.",
+  "Write about a habit you've given up.",
+  "What's a place you'll never write about but think about often?",
+  "Describe how you feel about where you live right now.",
+  "Write about something you want to explain to someone who doesn't know you.",
+  "What's a piece of advice you keep ignoring?",
+  "Write about the texture of a particular afternoon.",
+  "What's something you'd like to do slowly this year?",
+  "Write about a photo you've taken that means something to you.",
+  "What's something that surprised you about yourself this year?",
+  "Describe a door — literal or otherwise.",
+  "Write about a moment of real quiet.",
+  "What does loyalty look like in practice?",
+  // May
+  "Write about a time you listened well.",
+  "What's something you want to witness before it changes?",
+  "Describe a city you've returned to.",
+  "Write about the last thing you made with your hands.",
+  "What's something you're stubborn about — and why?",
+  "Write about an afternoon that turned into something else.",
+  "What does rest actually feel like for you?",
+  "Describe an ending that was also a beginning.",
+  "Write about a smell that signals summer.",
+  "What's something you'd like to slow down and pay attention to?",
+  "Write about a relationship that was better in letters or messages.",
+  "What's a word in another language that you wish English had?",
+  "Describe a journey by public transport.",
+  "Write about something you know better now than you did a year ago.",
+  "What does ambition feel like when it's healthy?",
+  "Write about a piece of music you return to.",
+  "What's something you want to do differently in the second half of the year?",
+  "Describe the best light you've seen recently.",
+  "Write about a time you changed your mind in the middle of a conversation.",
+  "What's something you do just for yourself?",
+  "Write about a friendship you're grateful for.",
+  "What does hunger mean to you — beyond food?",
+  "Describe a moment that felt cinematic.",
+  "Write about something that complicates a simple story you tell.",
+  "What's a landscape you carry with you?",
+  "Write about a routine that became ritual.",
+  "What's something you've learned from being wrong?",
+  "Describe a conversation you're still processing.",
+  "Write about something you want to build.",
+  "What does it mean to commit to something?",
+  "Write about a season you're glad is over.",
+  // Jun
+  "Describe the feeling of arriving somewhere new.",
+  "What's something you've learned from watching others?",
+  "Write about a time you felt genuinely free.",
+  "What's a memory tied to a specific temperature?",
+  "Write about a time you had to start over.",
+  "What does curiosity feel like in your body?",
+  "Describe something you've noticed lately that you want to remember.",
+  "Write about a skill you admire in someone else.",
+  "What's something that's changed about how you read or listen?",
+  "Write about a place that has a different quality at different times of day.",
+  "What does it mean to pay attention?",
+  "Describe a city during a holiday you don't celebrate.",
+  "Write about something you did out of habit that turned out to matter.",
+  "What's something you'd tell a younger writer?",
+  "Write about a morning in a foreign city.",
+  "What's something you're still deciding?",
+  "Describe an object that belongs to the past.",
+  "Write about something you're proud of that nobody knows about.",
+  "What's a lesson your body has taught your mind?",
+  "Write about a time generosity changed the situation.",
+  "What's something you want to hold onto this year?",
+  "Describe what it feels like to be between places.",
+  "Write about a time you arrived exactly when you were needed.",
+  "What does home mean when you're away from it?",
+  "Write about a sound that's disappeared from your life.",
+  "What's something you keep thinking about but haven't written about?",
+  "Describe a journey that didn't go as planned.",
+  "Write about someone who modeled a way of living you wanted.",
+  "What's something you want to make space for?",
+  "Write about a word you've been thinking about.",
+  // Jul
+  "What's something you've stopped needing?",
+  "Describe a moment of unexpected beauty.",
+  "Write about a rule you've decided to break.",
+  "What's something you're learning to receive?",
+  "Write about the feel of a particular city at night.",
+  "What's something you'd like to say plainly?",
+  "Describe the last time you were genuinely moved.",
+  "Write about something you know by heart.",
+  "What's something you've protected for too long?",
+  "Write about a time your expectations were wrong.",
+  "What does it feel like to finish something?",
+  "Describe a trip in weather you didn't expect.",
+  "Write about something that's worth the effort.",
+  "What's a question you want to sit with longer?",
+  "Write about a time something small made everything feel okay.",
+  "What's something you'd like to understand about your past?",
+  "Describe a gesture that mattered.",
+  "Write about something you've been postponing.",
+  "What does the middle of the year feel like?",
+  "Write about a sound you find comforting.",
+  "What's something you've given away that you don't regret?",
+  "Describe a space that holds a version of you.",
+  "Write about a time you asked for help.",
+  "What's something you want to do before summer ends?",
+  "Write about a moment when the plan fell apart and it was fine.",
+  "What does growing older feel like this year?",
+  "Describe something you've started to love that you didn't expect to.",
+  "Write about a friendship that required effort.",
+  "What does it mean to be honest with yourself?",
+  "Write about a threshold you've recently crossed.",
+  "What's something you want to remember about right now?",
+  // Aug
+  "Write about heat — not just temperature.",
+  "What's something you've learned about yourself through travel?",
+  "Describe a city in the rain.",
+  "Write about something that's taken longer than expected but is still worth it.",
+  "What's a piece of writing you wish you'd written?",
+  "Write about a moment you recognized yourself in a stranger.",
+  "What does a good week feel like?",
+  "Describe something you've kept without knowing why.",
+  "Write about a decision you made slowly.",
+  "What's something you're getting better at accepting about time?",
+  "Write about a landscape in a particular light.",
+  "What does the word 'discipline' mean to you now?",
+  "Describe an encounter that was brief but stayed with you.",
+  "Write about something you've only recently started to value.",
+  "What's a place you've never been but feel connected to?",
+  "Write about a time you were in the right place.",
+  "What does confidence feel like — when it's real?",
+  "Describe a photograph you wish you'd taken.",
+  "Write about something you return to when you want to feel like yourself.",
+  "What's something you've recently unlearned?",
+  "Write about a form of care that isn't easily named.",
+  "What does it mean to belong somewhere?",
+  "Describe the last place you sat and did nothing.",
+  "Write about something you love that embarrasses you.",
+  "What's a version of the future you think about?",
+  "Write about a gesture of hospitality that stayed with you.",
+  "What's something you've changed your relationship to this year?",
+  "Describe a window — and what's outside it.",
+  "Write about something you want to write about someday.",
+  "What's something you've decided to stop waiting for?",
+  "Write about a morning that started one way and ended another.",
+  // Sep
+  "What does the shift into fall feel like wherever you are?",
+  "Write about something you want to preserve.",
+  "Describe a meal that was more than food.",
+  "Write about a city in transition.",
+  "What's something you've learned from slowing down?",
+  "Write about a time you said yes when you meant no.",
+  "What does discipline feel like two-thirds into the year?",
+  "Describe a place you didn't expect to feel at home in.",
+  "Write about something you've stopped pretending.",
+  "What's a new habit that's starting to stick?",
+  "Write about something you're learning from a person you don't know well.",
+  "What does it mean to trust your own taste?",
+  "Describe something you'd like to say to a city.",
+  "Write about a time being wrong taught you something.",
+  "What's a question you want answered before year's end?",
+  "Write about a texture that's tied to a memory.",
+  "What's something you've been giving more attention to?",
+  "Describe a place you've said goodbye to.",
+  "Write about something you've started treating like practice.",
+  "What does stillness feel like right now?",
+  "Write about a moment of real understanding.",
+  "What's something you appreciate about how you've changed?",
+  "Describe the view from your current chapter.",
+  "Write about something you've been honest about.",
+  "What does it mean to finish something with care?",
+  "Write about a time a place moved you.",
+  "What's something worth repeating?",
+  "Describe a beginning that felt like an ending.",
+  "Write about something you can't explain but believe.",
+  "What does patience look like in practice?",
+  // Oct
+  "Write about a year that changed everything.",
+  "What's something you've stopped apologizing for?",
+  "Describe an autumn ritual — yours or someone else's.",
+  "Write about a time something clicked.",
+  "What's something you want to do in the last quarter of the year?",
+  "Write about a sound that signals a season.",
+  "What does home look like from a distance?",
+  "Describe a street at the end of a long day.",
+  "Write about something you've started taking seriously.",
+  "What's something you want to understand about yourself?",
+  "Write about a journey you've been putting off.",
+  "What's something you want to do with more intention?",
+  "Describe a moment when time slowed down.",
+  "Write about something you want to tell the truth about.",
+  "What does this year look like from where you're standing?",
+  "Write about a place in a language you're still learning.",
+  "What's something you want to make peace with?",
+  "Describe a room that belongs to memory.",
+  "Write about something you want to carry into next year.",
+  "What does care feel like when it's sustainable?",
+  "Write about a friendship that's changed shape — for the better.",
+  "What's something you've started to love about your life?",
+  "Describe a landscape in a season you love.",
+  "Write about something you want to do before winter.",
+  "What's a question you've stopped being afraid to ask?",
+  "Write about a quiet kind of courage.",
+  "What does momentum feel like when it's real?",
+  "Describe something you want to hold lightly.",
+  "Write about something you'd like to learn from someone older.",
+  "What's something you want to write about next year?",
+  "Write about the end of something — and what it made room for.",
+  // Nov
+  "What does the approach of year's end feel like?",
+  "Write about something you're grateful for that you didn't expect.",
+  "Describe a city in the cold.",
+  "Write about something you want to do more slowly.",
+  "What's something you've built that matters?",
+  "Write about a meal that meant belonging.",
+  "What does it mean to be ready for something?",
+  "Describe a light in November.",
+  "Write about something you've protected well.",
+  "What's something you want to finish before the year is over?",
+  "Write about a form of quiet you've come to value.",
+  "What does it feel like to be in a different place than you imagined?",
+  "Describe something worth marking.",
+  "Write about a person who showed you how to do something.",
+  "What's something you'd like to say out loud?",
+  "Write about a time you were exactly where you needed to be.",
+  "What's something you've started to understand about yourself?",
+  "Describe what honesty feels like in daily life.",
+  "Write about something that surprised you about the year.",
+  "What does momentum feel like with a month left?",
+  "Write about something you want to bring into the next year.",
+  "What's something you've gotten wrong that you're grateful for?",
+  "Describe an ending you're at peace with.",
+  "Write about something you want to say to the year.",
+  "What's something you'd like to build in the new year?",
+  "Write about a decision that made things simpler.",
+  "What does it mean to finish what you started?",
+  "Describe something small that became important.",
+  "Write about the view from here.",
+  "What's something you want to carry forward?",
+  // Dec
+  "Write about the last month of the year.",
+  "What's something you're proud of from this year?",
+  "Describe a winter ritual you love.",
+  "Write about something you want to do in the quiet between years.",
+  "What's something you've learned that changed how you live?",
+  "Write about a person who showed up for you this year.",
+  "What does the end of the year feel like in your body?",
+  "Describe a place you want to return to.",
+  "Write about something you're releasing as the year ends.",
+  "What's a word for what this year was?",
+  "Write about something you want to begin.",
+  "What does a new year mean to you?",
+  "Describe the last thing you want to see before midnight.",
+  "Write about something worth celebrating.",
+  "What's something you're taking into the new year?",
+  "Write about a gift — given or received.",
+  "What does it feel like to have kept going?",
+  "Describe the last good day of the year.",
+  "Write about something you've learned about writing this year.",
+  "What's something you want to be truer to?",
+  "Write about a hope.",
+  "What's something you'll look back on with warmth?",
+  "Describe what you want the new year to feel like.",
+  "Write about something this year taught you about yourself.",
+  "What's a resolution you actually want to keep?",
+  "Write about the last morning of the year.",
+  "What's something beautiful about where you are right now?",
+  "Write about something you've finished.",
+  "What does the last day feel like?",
+  "Write about a word for next year.",
+  "Write about what you'd tell yourself at the start of this year.",
+];
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let dbToken = localStorage.getItem('db_token') || null;
+let appKey = localStorage.getItem('db_app_key') || null;
+let milestoneReached = false;
+
+// ─── DATE UTILS ─────────────────────────────────────────────────────────────
+function todayInfo() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const iso = `${y}-${m}-${day}`;
+  const start = new Date(y, 0, 0);
+  const diff = d - start;
+  const dayOfYear = Math.floor(diff / 86400000) - 1;
+  const dayNumber = Math.floor(diff / 86400000);
+  const monthFile = `${m}-${y}.txt`;
+  return { y, m, day, iso, dayOfYear, dayNumber, monthFile };
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  handleOAuthCallback();
+
+  const t = todayInfo();
+  document.getElementById('dateDisplay').textContent = t.iso;
+  document.getElementById('dayOfYear').textContent = `day ${t.dayNumber} of 365`;
+  document.getElementById('redirectUriDisplay').textContent = 'https://uncle-jasper.github.io/daily-writer/';
+
+  const idx = Math.min(t.dayOfYear, PROMPTS.length - 1);
+  const prompt = PROMPTS[idx] || '';
+  document.getElementById('promptText').textContent = prompt || 'free write — anything you want.';
+  if (!prompt) document.querySelector('.prompt-skip').style.display = 'none';
+
+  updateDbUI();
+
+  const draft = localStorage.getItem('draft_' + t.iso);
+  if (draft) {
+    document.getElementById('editor').value = draft;
+    onEdit();
+  }
+
+  if (localStorage.getItem('saved_' + t.iso)) {
+    document.getElementById('doneTodayBadge').classList.add('visible');
+  }
+});
+
+function ignorePrompt() {
+  document.getElementById('promptText').textContent = 'free write — write about anything.';
+  document.querySelector('.prompt-skip').style.display = 'none';
+}
+
+// ─── EDITOR ─────────────────────────────────────────────────────────────────
+function wordCount(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+}
+
+function onEdit() {
+  const text = document.getElementById('editor').value;
+  const wc = wordCount(text);
+  const pct = Math.min((wc / 100) * 100, 100);
+  const bar = document.getElementById('wcBar');
+  const label = document.getElementById('wcLabel');
+  const fanfare = document.getElementById('fanfare');
+  const saveBtn = document.getElementById('saveBtn');
+
+  bar.style.width = pct + '%';
+  label.textContent = `${wc} / 100`;
+
+  const done = wc >= 100;
+  bar.classList.toggle('done', done);
+  label.classList.toggle('done', done);
+
+  if (done && !milestoneReached) {
+    milestoneReached = true;
+    fanfare.classList.add('visible');
+  }
+  if (!done) {
+    milestoneReached = false;
+    fanfare.classList.remove('visible');
+  }
+
+  saveBtn.disabled = !dbToken || wc < 100;
+
+  const t = todayInfo();
+  localStorage.setItem('draft_' + t.iso, text);
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────────────────────
+function copyText() {
+  const text = document.getElementById('editor').value;
+  if (!text.trim()) { showToast('nothing to copy.'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('copied to clipboard.'));
+}
+
+function downloadTxt() {
+  const text = document.getElementById('editor').value;
+  if (!text.trim()) { showToast('nothing to download.'); return; }
+  const t = todayInfo();
+  const content = `## ${t.iso}\n\n${text}`;
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${t.iso}.txt`;
+  a.click();
+}
+
+// ─── DROPBOX OAUTH (PKCE) ───────────────────────────────────────────────────
+function openSetup() {
+  if (dbToken) {
+    if (confirm('Disconnect Dropbox?')) {
+      dbToken = null;
+      localStorage.removeItem('db_token');
+      updateDbUI();
+    }
+    return;
+  }
+  document.getElementById('setupOverlay').classList.add('open');
+  if (appKey) document.getElementById('appKeyInput').value = appKey;
+}
+
+function closeSetup() {
+  document.getElementById('setupOverlay').classList.remove('open');
+}
+
+async function startAuth() {
+  const key = document.getElementById('appKeyInput').value.trim();
+  if (!key) { showToast('paste your app key first.'); return; }
+  appKey = key;
+  localStorage.setItem('db_app_key', key);
+
+  const verifier = generateVerifier();
+  const challenge = await generateChallenge(verifier);
+  sessionStorage.setItem('pkce_verifier', verifier);
+
+  const redirect = 'https://uncle-jasper.github.io/daily-writer/';
+  const url = `https://www.dropbox.com/oauth2/authorize?` +
+    `client_id=${encodeURIComponent(key)}&` +
+    `response_type=code&` +
+    `redirect_uri=${encodeURIComponent(redirect)}&` +
+    `code_challenge=${encodeURIComponent(challenge)}&` +
+    `code_challenge_method=S256&` +
+    `token_access_type=offline`;
+  window.location.href = url;
+}
+
+async function handleOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return;
+
+  window.history.replaceState({}, '', window.location.pathname);
+
+  const verifier = sessionStorage.getItem('pkce_verifier');
+  const key = localStorage.getItem('db_app_key');
+
+  if (!verifier || !key) { showToast('OAuth error — try connecting again.'); return; }
+
+  try {
+    const resp = await fetch('https://api.dropboxapi.com/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        grant_type: 'authorization_code',
+        client_id: key,
+        redirect_uri: 'https://uncle-jasper.github.io/daily-writer/',
+        code_verifier: verifier
+      })
+    });
+    const data = await resp.json();
+    if (data.access_token) {
+      dbToken = data.access_token;
+      localStorage.setItem('db_token', dbToken);
+      sessionStorage.removeItem('pkce_verifier');
+      showToast('dropbox connected.');
+      updateDbUI();
+      onEdit();
+    } else {
+      showToast('auth failed: ' + (data.error_description || data.error));
+    }
+  } catch (e) {
+    showToast('token exchange failed — check your redirect URI.');
+  }
+}
+
+function generateVerifier() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return btoa(String.fromCharCode(...arr)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function generateChallenge(verifier) {
+  const enc = new TextEncoder().encode(verifier);
+  const hash = await crypto.subtle.digest('SHA-256', enc);
+  return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// ─── DROPBOX SAVE ───────────────────────────────────────────────────────────
+async function saveToDropbox() {
+  const text = document.getElementById('editor').value.trim();
+  if (!text || wordCount(text) < 100) { showToast('write at least 100 words first.'); return; }
+  if (!dbToken) { showToast('connect dropbox first.'); return; }
+
+  const t = todayInfo();
+  const filePath = `${DROPBOX_FOLDER}/${t.monthFile}`;
+
+  showToast('saving…');
+
+  let existingContent = '';
+  try {
+    const dlResp = await fetch('https://content.dropboxapi.com/2/files/download', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + dbToken,
+        'Dropbox-API-Arg': JSON.stringify({ path: filePath })
+      }
+    });
+    if (dlResp.ok) {
+      existingContent = await dlResp.text();
+    }
+  } catch (e) {}
+
+  // Entry format: blank line before heading, blank line before content
+  const entry = `\n## ${t.iso}\n\n${text}\n`;
+
+  if (existingContent.includes(`## ${t.iso}`)) {
+    // Replace existing entry for today
+    const regex = new RegExp(`\n## ${t.iso}\\n[\\s\\S]*?(?=\n## \\d{4}-\\d{2}-\\d{2}|$)`);
+    existingContent = existingContent.replace(regex, entry);
+  } else {
+    // Trim trailing whitespace from existing, then append
+    existingContent = existingContent.trimEnd() + '\n' + entry;
+  }
+
+  try {
+    const upResp = await fetch('https://content.dropboxapi.com/2/files/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + dbToken,
+        'Content-Type': 'application/octet-stream',
+        'Dropbox-API-Arg': JSON.stringify({
+          path: filePath,
+          mode: 'overwrite',
+          autorename: false,
+          mute: false
+        })
+      },
+      body: existingContent
+    });
+
+    if (upResp.ok) {
+      localStorage.setItem('saved_' + t.iso, '1');
+      document.getElementById('doneTodayBadge').classList.add('visible');
+      showToast(`saved to ${t.monthFile}`);
+    } else {
+      const err = await upResp.json();
+      if (err.error && err.error['.tag'] === 'expired_access_token') {
+        dbToken = null;
+        localStorage.removeItem('db_token');
+        updateDbUI();
+        showToast('session expired — reconnect dropbox.');
+      } else {
+        showToast('save failed: ' + (err.error_summary || 'unknown error'));
+      }
+    }
+  } catch (e) {
+    showToast('save failed — check connection.');
+  }
+}
+
+// ─── UI HELPERS ─────────────────────────────────────────────────────────────
+function updateDbUI() {
+  const dot = document.getElementById('dbDot');
+  const label = document.getElementById('dbStatusLabel');
+  if (dbToken) {
+    dot.classList.add('connected');
+    label.textContent = 'dropbox connected';
+  } else {
+    dot.classList.remove('connected');
+    label.textContent = 'connect dropbox';
+  }
+  onEdit();
+}
+
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+document.getElementById('setupOverlay').addEventListener('click', function (e) {
+  if (e.target === this) closeSetup();
+});
+
+// ─── SERVICE WORKER ─────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/daily-writer/sw.js');
+}
+</script>
+</body>
+</html>
