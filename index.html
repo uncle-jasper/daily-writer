@@ -142,6 +142,48 @@
 
   .done-today.visible { display: flex; }
 
+  .focus-toggle {
+    display: block;
+    margin-top: 2rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.4;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: transparent;
+    transition: opacity 0.2s;
+  }
+
+  .focus-toggle:hover { opacity: 0.8; }
+
+  .header, .streak-row, .fanfare, .actions, footer {
+    transition: opacity 0.4s ease;
+  }
+
+  .focus-mode .header,
+  .focus-mode .streak-row,
+  .focus-mode .fanfare,
+  .focus-mode .actions,
+  .focus-mode footer { opacity: 0; pointer-events: none; }
+
+  .focus-mode .focus-toggle { opacity: 0.2; }
+
+  .prompt-label, .prompt-text, .prompt-skip, .wc-label, .wc-bar-wrap {
+    transition: opacity 0.4s ease;
+  }
+
+  .focus-mode .prompt-label,
+  .focus-mode .prompt-text,
+  .focus-mode .prompt-skip,
+  .focus-mode .wc-label { opacity: 0.25; }
+
+  .focus-mode .wc-bar-wrap { opacity: 0.25; }
+
   .prompt-area {
     margin-bottom: 1.75rem;
   }
@@ -455,7 +497,11 @@
     <button class="action" onclick="downloadTxt()">download .txt</button>
   </div>
 
+  <button class="focus-toggle" id="focusToggle" onclick="toggleFocus()">turn off the lights</button>
+
 </div>
+
+<footer style="margin-top: 3rem; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); opacity: 0.5;">vibe coded by Dan &copy; 2026</footer>
 
 <div class="overlay" id="setupOverlay">
   <div class="modal">
@@ -1148,6 +1194,13 @@ function updateDbUI() {
   onEdit();
 }
 
+function toggleFocus() {
+  const app = document.querySelector('.app');
+  const btn = document.getElementById('focusToggle');
+  const focused = document.body.classList.toggle('focus-mode');
+  btn.textContent = focused ? 'turn on the lights' : 'turn off the lights';
+}
+
 let toastTimer;
 function showToast(msg) {
   const el = document.getElementById('toast');
@@ -1163,7 +1216,19 @@ document.getElementById('setupOverlay').addEventListener('click', function (e) {
 
 // ─── SERVICE WORKER ─────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/daily-writer/sw.js');
+  navigator.serviceWorker.register('/daily-writer/sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          newWorker.postMessage('skipWaiting');
+        }
+      });
+    });
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
 }
 </script>
 </body>

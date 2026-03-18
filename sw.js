@@ -25,13 +25,17 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(resp => {
+      const network = fetch(e.request).then(resp => {
         if (!resp || resp.status !== 200 || resp.type === 'opaque') return resp;
         const clone = resp.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return resp;
-      }).catch(() => caches.match('/daily-writer/index.html'));
+      }).catch(() => cached);
+      return cached || network;
     })
   );
+});
+
+self.addEventListener('message', e => {
+  if (e.data === 'skipWaiting') self.skipWaiting();
 });
