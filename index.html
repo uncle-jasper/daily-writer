@@ -221,30 +221,40 @@
 
   .prompt-skip:hover { color: var(--text); }
 
-  textarea {
+  .editor {
     width: 100%;
     min-height: 340px;
+    max-height: 70vh;
     border: 0.5px solid var(--border-strong);
     border-radius: var(--radius);
-    padding: 1.25rem 1.25rem 3rem;
+    padding: 1.25rem;
+    padding-bottom: 4rem;
     background: var(--surface);
     color: var(--text);
     font-family: var(--mono);
     font-size: 15px;
     line-height: 1.8;
-    resize: vertical;
     outline: none;
     transition: border-color 0.2s;
     caret-color: var(--text);
     margin-bottom: 1.25rem;
+    overflow-y: auto;
+    scroll-padding-bottom: 3rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    cursor: text;
   }
 
-  textarea:focus {
+  .editor:focus {
     border-color: var(--border-strong);
     box-shadow: 0 0 0 3px var(--border);
   }
 
-  textarea::placeholder { color: var(--muted); }
+  .editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--muted);
+    pointer-events: none;
+  }
 
   .wc-row {
     display: flex;
@@ -489,7 +499,7 @@
     <button class="prompt-skip" onclick="ignorePrompt()">ignore — write freely</button>
   </div>
 
-  <textarea id="editor" placeholder="Start writing…" oninput="onEdit()" spellcheck="true"></textarea>
+  <div id="editor" class="editor" contenteditable="true" spellcheck="true" data-placeholder="Start writing…" oninput="onEdit()"></div>
 
   <div class="wc-row">
     <div class="wc-bar-wrap"><div class="wc-bar" id="wcBar"></div></div>
@@ -960,7 +970,7 @@ window.addEventListener('load', () => {
 
   const draft = localStorage.getItem('draft_' + t.iso);
   if (draft) {
-    document.getElementById('editor').value = draft;
+    document.getElementById('editor').innerText = draft;
     onEdit();
   }
 
@@ -979,8 +989,12 @@ function wordCount(text) {
   return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
 }
 
+function getText() {
+  return document.getElementById('editor').innerText || '';
+}
+
 function onEdit() {
-  const text = document.getElementById('editor').value;
+  const text = getText();
   const wc = wordCount(text);
   const pct = Math.min((wc / 100) * 100, 100);
   const bar = document.getElementById('wcBar');
@@ -1022,13 +1036,13 @@ function onEdit() {
 
 // ─── ACTIONS ────────────────────────────────────────────────────────────────
 function copyText() {
-  const text = document.getElementById('editor').value;
+  const text = getText();
   if (!text.trim()) { showToast('nothing to copy.'); return; }
   navigator.clipboard.writeText(text).then(() => showToast('copied to clipboard.'));
 }
 
 function downloadTxt() {
-  const text = document.getElementById('editor').value;
+  const text = getText();
   if (!text.trim()) { showToast('nothing to download.'); return; }
   const t = todayInfo();
   const content = `## ${t.iso}\n\n${text}`;
@@ -1132,7 +1146,7 @@ async function generateChallenge(verifier) {
 
 // ─── DROPBOX SAVE ───────────────────────────────────────────────────────────
 async function saveToDropbox() {
-  const text = document.getElementById('editor').value.trim();
+  const text = getText().trim();
   if (!text || wordCount(text) < 100) { showToast('write at least 100 words first.'); return; }
   if (!dbToken) { showToast('connect dropbox first.'); return; }
 
