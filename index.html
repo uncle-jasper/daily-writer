@@ -165,15 +165,21 @@
   .focus-toggle:hover { opacity: 0.5; }
   .focus-mode .focus-toggle { opacity: 0.1; }
 
-  .header, .streak-row, .fanfare, .actions, footer {
+  .header, .streak-row, .fanfare, .actions {
+    transition: opacity 0.4s ease;
+  }
+
+  footer {
+    opacity: 0.5;
     transition: opacity 0.4s ease;
   }
 
   .focus-mode .header,
   .focus-mode .streak-row,
   .focus-mode .fanfare,
-  .focus-mode .actions,
-  .focus-mode footer { opacity: 0; pointer-events: none; }
+  .focus-mode .actions { opacity: 0; pointer-events: none; }
+
+  .focus-mode footer { opacity: 0.25; }
 
   .focus-mode .focus-toggle { opacity: 0.2; }
 
@@ -529,7 +535,7 @@
 
 </div>
 
-<footer style="margin-top: 3rem; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); opacity: 0.5;">vibe coded by Dan &copy; 2026</footer>
+<footer style="margin-top: 3rem; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted);">vibe coded by Dan &copy; 2026</footer>
 
 <div class="overlay" id="setupOverlay">
   <div class="modal">
