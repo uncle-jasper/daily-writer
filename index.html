@@ -142,24 +142,28 @@
 
   .done-today.visible { display: flex; }
 
+  .editor-wrap {
+    position: relative;
+    margin-bottom: 1.25rem;
+  }
+
   .focus-toggle {
-    display: block;
-    margin-top: 2rem;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    opacity: 0.4;
-    background: none;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    opacity: 0.2;
     border: none;
     cursor: pointer;
     padding: 0;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    text-decoration-color: transparent;
     transition: opacity 0.2s;
   }
 
-  .focus-toggle:hover { opacity: 0.8; }
+  .focus-toggle:hover { opacity: 0.5; }
+  .focus-mode .focus-toggle { opacity: 0.1; }
 
   .header, .streak-row, .fanfare, .actions, footer {
     transition: opacity 0.4s ease;
@@ -236,7 +240,6 @@
     outline: none;
     transition: border-color 0.2s;
     caret-color: var(--text);
-    margin-bottom: 1.25rem;
     overflow-y: auto;
     scroll-padding-bottom: 3rem;
     white-space: pre-wrap;
@@ -498,7 +501,10 @@
     <button class="prompt-skip" onclick="ignorePrompt()">ignore — write freely</button>
   </div>
 
-  <div id="editor" class="editor" contenteditable="true" spellcheck="true" data-placeholder="Start writing…" oninput="onEdit()"></div>
+  <div class="editor-wrap">
+    <div id="editor" class="editor" contenteditable="true" spellcheck="true" data-placeholder="Start writing…" oninput="onEdit()"></div>
+    <button class="focus-toggle" id="focusToggle" onclick="toggleFocus()" title="toggle focus mode"></button>
+  </div>
 
   <div class="wc-row">
     <div class="wc-bar-wrap"><div class="wc-bar" id="wcBar"></div></div>
@@ -519,7 +525,7 @@
     <button class="action" onclick="downloadTxt()">download .txt</button>
   </div>
 
-  <button class="focus-toggle" id="focusToggle" onclick="toggleFocus()">turn off the lights</button>
+
 
 </div>
 
