@@ -294,14 +294,27 @@
     font-family: var(--mono);
     font-size: 12px;
     color: var(--success);
-    animation: slideIn 0.4s ease;
+    animation: fanfareAnim 4s ease forwards;
   }
 
   .fanfare.visible { display: flex; }
 
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes fanfareAnim {
+    0%   { opacity: 0; transform: translateY(-6px); }
+    15%  { opacity: 1; transform: translateY(0); }
+    60%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .focus-mode .fanfare.visible {
+    animation: fanfareAnimDim 4s ease forwards;
+  }
+
+  @keyframes fanfareAnimDim {
+    0%   { opacity: 0; transform: translateY(-6px); }
+    15%  { opacity: 0.25; transform: translateY(0); }
+    60%  { opacity: 0.25; }
+    100% { opacity: 0; }
   }
 
   .actions {
@@ -527,7 +540,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const DROPBOX_FOLDER = '/docs/writings/Everyday Writings/2026';
+const DROPBOX_FOLDER = '/docs/writings/Everyday Writings/2026/100words2026';
 
 const PROMPTS = [
   // Jan
@@ -925,7 +938,7 @@ function todayInfo() {
   const diff = d - start;
   const dayOfYear = Math.floor(diff / 86400000) - 1;
   const dayNumber = Math.floor(diff / 86400000);
-  const monthFile = `${m}-${y}.txt`;
+  const monthFile = `${y}-${m}.txt`;
   return { y, m, day, iso, dayOfYear, dayNumber, monthFile };
 }
 
@@ -984,11 +997,21 @@ function onEdit() {
 
   if (done && !milestoneReached) {
     milestoneReached = true;
+    fanfare.style.display = 'flex';
+    fanfare.classList.remove('visible');
+    void fanfare.offsetWidth;
     fanfare.classList.add('visible');
+    clearTimeout(fanfare._hideTimer);
+    fanfare._hideTimer = setTimeout(() => {
+      fanfare.classList.remove('visible');
+      fanfare.style.display = 'none';
+    }, 4000);
   }
   if (!done) {
     milestoneReached = false;
+    clearTimeout(fanfare._hideTimer);
     fanfare.classList.remove('visible');
+    fanfare.style.display = 'none';
   }
 
   saveBtn.disabled = !dbToken || wc < 100;
