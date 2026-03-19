@@ -1267,6 +1267,12 @@ document.getElementById('setupOverlay').addEventListener('click', function (e) {
   if (e.target === this) closeSetup();
 });
 
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && !document.getElementById('setupOverlay').classList.contains('open')) {
+    toggleFocus();
+  }
+});
+
 // ─── SERVICE WORKER ─────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/daily-writer/sw.js').then(reg => {
