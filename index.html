@@ -165,21 +165,15 @@
   .focus-toggle:hover { opacity: 0.5; }
   .focus-mode .focus-toggle { opacity: 0.1; }
 
-  .header, .streak-row, .fanfare, .actions {
-    transition: opacity 0.4s ease;
-  }
-
-  footer {
-    opacity: 0.5;
+  .header, .streak-row, .fanfare, .actions, footer {
     transition: opacity 0.4s ease;
   }
 
   .focus-mode .header,
   .focus-mode .streak-row,
   .focus-mode .fanfare,
-  .focus-mode .actions { opacity: 0; pointer-events: none; }
-
-  .focus-mode footer { opacity: 0.25; }
+  .focus-mode .actions,
+  .focus-mode footer { opacity: 0; pointer-events: none; }
 
   .focus-mode .focus-toggle { opacity: 0.2; }
 
@@ -535,7 +529,7 @@
 
 </div>
 
-<footer style="margin-top: 3rem; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted);">vibe coded by Dan &copy; 2026</footer>
+<footer style="margin-top: 3rem; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); opacity: 0.5;">vibe coded by Dan &copy; 2026</footer>
 
 <div class="overlay" id="setupOverlay">
   <div class="modal">
@@ -945,6 +939,7 @@ const PROMPTS = [
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
 let dbToken = localStorage.getItem('db_token') || null;
+let dbRefreshToken = localStorage.getItem('db_refresh_token') || null;
 let appKey = localStorage.getItem('db_app_key') || null;
 let milestoneReached = false;
 
@@ -1007,11 +1002,6 @@ function getText() {
 function onEdit() {
   const text = getText();
   const wc = wordCount(text);
-
-  if (wc > 0 && !document.body.classList.contains('focus-mode')) {
-    document.body.classList.add('focus-mode');
-    document.getElementById('focusToggle').textContent = 'turn on the lights';
-  }
   const pct = Math.min((wc / 100) * 100, 100);
   const bar = document.getElementById('wcBar');
   const label = document.getElementById('wcLabel');
@@ -1074,7 +1064,9 @@ function openSetup() {
   if (dbToken) {
     if (confirm('Disconnect Dropbox?')) {
       dbToken = null;
+      dbRefreshToken = null;
       localStorage.removeItem('db_token');
+      localStorage.removeItem('db_refresh_token');
       updateDbUI();
     }
     return;
@@ -1136,6 +1128,10 @@ async function handleOAuthCallback() {
     if (data.access_token) {
       dbToken = data.access_token;
       localStorage.setItem('db_token', dbToken);
+      if (data.refresh_token) {
+        dbRefreshToken = data.refresh_token;
+        localStorage.setItem('db_refresh_token', dbRefreshToken);
+      }
       sessionStorage.removeItem('pkce_verifier');
       showToast('dropbox connected.');
       updateDbUI();
@@ -1158,6 +1154,29 @@ async function generateChallenge(verifier) {
   const enc = new TextEncoder().encode(verifier);
   const hash = await crypto.subtle.digest('SHA-256', enc);
   return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// ─── DROPBOX TOKEN REFRESH ──────────────────────────────────────────────────
+async function refreshAccessToken() {
+  if (!dbRefreshToken || !appKey) return false;
+  try {
+    const resp = await fetch('https://api.dropboxapi.com/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: dbRefreshToken,
+        client_id: appKey
+      })
+    });
+    const data = await resp.json();
+    if (data.access_token) {
+      dbToken = data.access_token;
+      localStorage.setItem('db_token', dbToken);
+      return true;
+    }
+  } catch (e) {}
+  return false;
 }
 
 // ─── DROPBOX SAVE ───────────────────────────────────────────────────────────
@@ -1220,10 +1239,19 @@ async function saveToDropbox() {
     } else {
       const err = await upResp.json();
       if (err.error && err.error['.tag'] === 'expired_access_token') {
-        dbToken = null;
-        localStorage.removeItem('db_token');
-        updateDbUI();
-        showToast('session expired — reconnect dropbox.');
+        showToast('token expired — refreshing…');
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+          // Retry the save with the new token
+          await saveToDropbox();
+        } else {
+          dbToken = null;
+          dbRefreshToken = null;
+          localStorage.removeItem('db_token');
+          localStorage.removeItem('db_refresh_token');
+          updateDbUI();
+          showToast('session expired — reconnect dropbox. your text is still in the editor.');
+        }
       } else {
         showToast('save failed: ' + (err.error_summary || 'unknown error'));
       }
@@ -1265,12 +1293,6 @@ function showToast(msg) {
 
 document.getElementById('setupOverlay').addEventListener('click', function (e) {
   if (e.target === this) closeSetup();
-});
-
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape' && !document.getElementById('setupOverlay').classList.contains('open')) {
-    toggleFocus();
-  }
 });
 
 // ─── SERVICE WORKER ─────────────────────────────────────────────────────────
