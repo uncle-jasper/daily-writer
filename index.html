@@ -172,8 +172,9 @@
   .focus-mode .header,
   .focus-mode .streak-row,
   .focus-mode .fanfare,
-  .focus-mode .actions,
-  .focus-mode footer { opacity: 0; pointer-events: none; }
+  .focus-mode .actions { opacity: 0; pointer-events: none; }
+
+  .focus-mode footer { opacity: 0.25; }
 
   .focus-mode .focus-toggle { opacity: 0.2; }
 
@@ -1002,6 +1003,11 @@ function getText() {
 function onEdit() {
   const text = getText();
   const wc = wordCount(text);
+
+  if (wc > 0 && !document.body.classList.contains('focus-mode')) {
+    document.body.classList.add('focus-mode');
+    document.getElementById('focusToggle').textContent = 'turn on the lights';
+  }
   const pct = Math.min((wc / 100) * 100, 100);
   const bar = document.getElementById('wcBar');
   const label = document.getElementById('wcLabel');
@@ -1293,6 +1299,12 @@ function showToast(msg) {
 
 document.getElementById('setupOverlay').addEventListener('click', function (e) {
   if (e.target === this) closeSetup();
+});
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && !document.getElementById('setupOverlay').classList.contains('open')) {
+    toggleFocus();
+  }
 });
 
 // ─── SERVICE WORKER ─────────────────────────────────────────────────────────
