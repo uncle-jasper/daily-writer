@@ -507,7 +507,7 @@
   </div>
 
   <div class="editor-wrap">
-    <div id="editor" class="editor" contenteditable="true" spellcheck="true" data-placeholder="Start writing…" oninput="onEdit()"></div>
+    <div id="editor" class="editor" contenteditable="true" spellcheck="true" data-placeholder="Start writing…" oninput="onEdit(true)"></div>
     <button class="focus-toggle" id="focusToggle" onclick="toggleFocus()" title="toggle focus mode"></button>
   </div>
 
@@ -946,6 +946,7 @@ const PROMPTS = [
 let dbToken = localStorage.getItem('db_token') || null;
 let appKey = localStorage.getItem('db_app_key') || null;
 let milestoneReached = false;
+let autoFocusTriggered = false;
 
 // ─── DATE UTILS ─────────────────────────────────────────────────────────────
 function todayInfo() {
@@ -1003,7 +1004,13 @@ function getText() {
   return document.getElementById('editor').innerText || '';
 }
 
-function onEdit() {
+function onEdit(fromUser = false) {
+  if (fromUser && !autoFocusTriggered) {
+    autoFocusTriggered = true;
+    if (!document.body.classList.contains('focus-mode')) {
+      document.body.classList.add('focus-mode');
+    }
+  }
   const text = getText();
   const wc = wordCount(text);
   const pct = Math.min((wc / 100) * 100, 100);
