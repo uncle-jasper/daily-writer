@@ -944,6 +944,7 @@ const PROMPTS = [
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
 let dbToken = localStorage.getItem('db_token') || null;
+let dbRefreshToken = localStorage.getItem('db_refresh_token') || null;
 let appKey = localStorage.getItem('db_app_key') || null;
 let milestoneReached = false;
 let autoFocusTriggered = false;
@@ -1075,7 +1076,9 @@ function openSetup() {
   if (dbToken) {
     if (confirm('Disconnect Dropbox?')) {
       dbToken = null;
+      dbRefreshToken = null;
       localStorage.removeItem('db_token');
+      localStorage.removeItem('db_refresh_token');
       updateDbUI();
     }
     return;
@@ -1137,6 +1140,10 @@ async function handleOAuthCallback() {
     if (data.access_token) {
       dbToken = data.access_token;
       localStorage.setItem('db_token', dbToken);
+      if (data.refresh_token) {
+        dbRefreshToken = data.refresh_token;
+        localStorage.setItem('db_refresh_token', dbRefreshToken);
+      }
       sessionStorage.removeItem('pkce_verifier');
       showToast('dropbox connected.');
       updateDbUI();
@@ -1159,6 +1166,28 @@ async function generateChallenge(verifier) {
   const enc = new TextEncoder().encode(verifier);
   const hash = await crypto.subtle.digest('SHA-256', enc);
   return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function refreshAccessToken() {
+  if (!dbRefreshToken || !appKey) return false;
+  try {
+    const resp = await fetch('https://api.dropboxapi.com/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: dbRefreshToken,
+        client_id: appKey
+      })
+    });
+    const data = await resp.json();
+    if (data.access_token) {
+      dbToken = data.access_token;
+      localStorage.setItem('db_token', dbToken);
+      return true;
+    }
+  } catch (e) {}
+  return false;
 }
 
 // ─── DROPBOX SAVE ───────────────────────────────────────────────────────────
@@ -1221,10 +1250,18 @@ async function saveToDropbox() {
     } else {
       const err = await upResp.json();
       if (err.error && err.error['.tag'] === 'expired_access_token') {
-        dbToken = null;
-        localStorage.removeItem('db_token');
-        updateDbUI();
-        showToast('session expired — reconnect dropbox.');
+        showToast('token expired — refreshing…');
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+          await saveToDropbox();
+        } else {
+          dbToken = null;
+          dbRefreshToken = null;
+          localStorage.removeItem('db_token');
+          localStorage.removeItem('db_refresh_token');
+          updateDbUI();
+          showToast('session expired — reconnect dropbox. your text is still in the editor.');
+        }
       } else {
         showToast('save failed: ' + (err.error_summary || 'unknown error'));
       }
