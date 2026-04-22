@@ -62,6 +62,7 @@
     max-width: 680px;
   }
 
+  /* ── HEADER ── */
   .header {
     display: flex;
     align-items: baseline;
@@ -118,6 +119,7 @@
 
   .dot.connected { background: var(--success); }
 
+  /* ── STREAK ROW ── */
   .streak-row {
     display: flex;
     align-items: center;
@@ -142,6 +144,105 @@
 
   .done-today.visible { display: flex; }
 
+  /* ── EXERCISE AREA ── */
+  .exercise-area {
+    margin-bottom: 1.75rem;
+  }
+
+  .exercise-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+  }
+
+  .exercise-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .exercise-why {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--border-strong);
+    letter-spacing: 0.04em;
+  }
+
+  .exercise-why:hover { color: var(--text); }
+
+  .exercise-heading {
+    font-family: var(--mono);
+    font-size: 14px;
+    margin-bottom: 0.65rem;
+  }
+
+  .exercise-day-name { color: var(--muted); }
+  .exercise-sep { color: var(--muted); }
+  .exercise-name { color: var(--text); }
+
+  .exercise-instruction {
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .exercise-rationale {
+    display: none;
+    margin-top: 0.85rem;
+    padding: 0.85rem 1rem;
+    border-left: 2px solid var(--border-strong);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .exercise-rationale.open { display: block; }
+
+  /* ── SUB-PROMPT ── */
+  .sub-prompt {
+    margin-top: 1rem;
+  }
+
+  .sub-prompt-toggle {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--border-strong);
+    letter-spacing: 0.04em;
+  }
+
+  .sub-prompt-toggle:hover { color: var(--text); }
+
+  .sub-prompt-text {
+    display: none;
+    margin-top: 0.5rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--muted);
+  }
+
+  .sub-prompt-text.open { display: block; }
+
+  /* ── EDITOR ── */
   .editor-wrap {
     position: relative;
     margin-bottom: 1.25rem;
@@ -165,6 +266,7 @@
   .focus-toggle:hover { opacity: 0.5; }
   .focus-mode .focus-toggle { opacity: 0.1; }
 
+  /* ── FOCUS MODE ── */
   .header, .streak-row, .fanfare, .actions, footer {
     transition: opacity 0.4s ease;
   }
@@ -177,53 +279,20 @@
 
   .focus-mode .focus-toggle { opacity: 0.2; }
 
-  .prompt-label, .prompt-text, .prompt-skip, .wc-label, .wc-bar-wrap {
+  .exercise-label, .exercise-why, .exercise-heading, .exercise-instruction,
+  .exercise-rationale, .sub-prompt, .wc-label, .wc-bar-wrap {
     transition: opacity 0.4s ease;
   }
 
-  .focus-mode .prompt-label,
-  .focus-mode .prompt-text,
-  .focus-mode .prompt-skip,
+  .focus-mode .exercise-label,
+  .focus-mode .exercise-why,
+  .focus-mode .exercise-heading,
+  .focus-mode .exercise-instruction,
+  .focus-mode .exercise-rationale,
+  .focus-mode .sub-prompt,
   .focus-mode .wc-label { opacity: 0.25; }
 
   .focus-mode .wc-bar-wrap { opacity: 0.25; }
-
-  .prompt-area {
-    margin-bottom: 1.75rem;
-  }
-
-  .prompt-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.6rem;
-  }
-
-  .prompt-text {
-    font-family: var(--mono);
-    font-size: 16px;
-    line-height: 1.65;
-    color: var(--text);
-  }
-
-  .prompt-skip {
-    display: inline-block;
-    margin-top: 0.5rem;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    text-decoration-color: var(--border-strong);
-  }
-
-  .prompt-skip:hover { color: var(--text); }
 
   .editor {
     width: 100%;
@@ -263,6 +332,7 @@
   .editor::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
   .editor::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
+  /* ── WORD COUNT ── */
   .wc-row {
     display: flex;
     align-items: center;
@@ -300,6 +370,7 @@
 
   .wc-label.done { color: var(--success); }
 
+  /* ── FANFARE ── */
   .fanfare {
     display: none;
     align-items: center;
@@ -334,6 +405,7 @@
     100% { opacity: 0; }
   }
 
+  /* ── ACTIONS ── */
   .actions {
     display: flex;
     gap: 8px;
@@ -367,6 +439,7 @@
 
   button.action.primary:hover { opacity: 0.85; }
 
+  /* ── TOAST ── */
   .toast {
     position: fixed;
     bottom: 2rem;
@@ -389,6 +462,7 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* ── OVERLAYS / MODALS ── */
   .overlay {
     display: none;
     position: fixed;
@@ -473,6 +547,26 @@
     gap: 8px;
     justify-content: flex-end;
   }
+
+  .modal-divider {
+    border: none;
+    border-top: 0.5px solid var(--border);
+    margin: 1.25rem 0 1rem;
+  }
+
+  /* ── FEEDBACK MODAL ── */
+  .feedback-body {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    min-height: 64px;
+  }
+
+  .feedback-loading {
+    color: var(--muted);
+  }
 </style>
 </head>
 <body>
@@ -500,10 +594,22 @@
     </div>
   </div>
 
-  <div class="prompt-area">
-    <div class="prompt-label">today's prompt</div>
-    <div class="prompt-text" id="promptText">Loading…</div>
-    <button class="prompt-skip" onclick="ignorePrompt()">ignore — write freely</button>
+  <div class="exercise-area">
+    <div class="exercise-meta">
+      <span class="exercise-label">today's exercise</span>
+      <button class="exercise-why" id="exerciseWhyBtn" onclick="toggleWhy()">why this?</button>
+    </div>
+    <div class="exercise-heading">
+      <span class="exercise-day-name" id="exerciseDayName"></span><span class="exercise-sep" id="exerciseSep"></span><span class="exercise-name" id="exerciseName"></span>
+    </div>
+    <div class="exercise-instruction" id="exerciseInstruction"></div>
+    <div class="exercise-rationale" id="exerciseRationale"></div>
+    <div class="sub-prompt" id="subPromptWrap">
+      <button class="sub-prompt-toggle" onclick="toggleSubPrompt()">
+        <span id="subPromptToggleLabel">today's prompt ▾</span>
+      </button>
+      <div class="sub-prompt-text" id="subPromptText"></div>
+    </div>
   </div>
 
   <div class="editor-wrap">
@@ -530,12 +636,11 @@
     <button class="action" onclick="downloadTxt()">download .txt</button>
   </div>
 
-
-
 </div>
 
 <footer style="margin-top: 3rem; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); opacity: 0.5;">vibe coded by Dan &copy; 2026</footer>
 
+<!-- ── SETUP OVERLAY ── -->
 <div class="overlay" id="setupOverlay">
   <div class="modal">
     <h2>connect dropbox</h2>
@@ -550,9 +655,25 @@
       <li>Copy your <strong>App key</strong> and paste below</li>
     </ol>
     <input type="text" id="appKeyInput" placeholder="App key" />
+    <hr class="modal-divider">
+    <p>Paste your <a href="https://console.anthropic.com/settings/keys" target="_blank">Anthropic API key</a> to enable writing feedback after saves:</p>
+    <input type="text" id="anthropicKeyInput" placeholder="sk-ant-..." />
     <div class="modal-actions">
       <button class="action" onclick="closeSetup()">cancel</button>
       <button class="action primary" onclick="startAuth()">authorize with dropbox</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEEDBACK OVERLAY ── -->
+<div class="overlay" id="feedbackOverlay">
+  <div class="modal">
+    <h2 id="feedbackTitle"></h2>
+    <div class="feedback-body" id="feedbackBody">
+      <span class="feedback-loading">checking your work…</span>
+    </div>
+    <div class="modal-actions">
+      <button class="action primary" onclick="closeFeedback()">done</button>
     </div>
   </div>
 </div>
@@ -561,6 +682,45 @@
 
 <script>
 const DROPBOX_FOLDER = '/docs/writings/Everyday Writings/2026/100words2026';
+
+// ─── EXERCISES ───────────────────────────────────────────────────────────────
+// Index matches getDay(): 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+const EXERCISES = [
+  null, // Sunday — free write
+  {
+    name: 'no adjectives',
+    instruction: 'Write 100 words using only nouns and verbs. No adjectives allowed.',
+    rationale: 'Forces specificity at the word level. The constraint reveals whether a detail is genuinely concrete or just described — and rewires the first instinct from reaching for the adjective to reaching for the better noun.',
+    feedbackPrompt: 'You are a writing coach giving direct, specific feedback on a writing exercise. The writer completed the No Adjectives exercise: write using only nouns and verbs, no adjectives. Scan the text for adjectives. Respond in exactly 2-3 sentences: name any adjectives found by quoting them exactly, note the strongest specific noun in the piece, give one concrete suggestion if needed. If no adjectives were found, confirm it and note the strongest noun work. No preamble. No encouragement. Assessment only.'
+  },
+  {
+    name: 'the inventory',
+    instruction: "Pick a person, place, or scene. Write a straight inventory of what's physically there — no interpretation, no emotion. Just the stuff.",
+    rationale: "The inventory principle: specific, physical objects listed without the writer explaining what they mean. The inventory is the emotion. The reader feels it because it's specific, not because you named it.",
+    feedbackPrompt: "You are a writing coach giving direct, specific feedback on a writing exercise. The writer completed The Inventory exercise: catalogue physical things in a scene with no interpretation or emotional explanation. Scan for any sentences that interpret, explain what things mean, or name emotions rather than list physical objects. Respond in exactly 2-3 sentences: quote any interpretation phrases found, identify the most specific concrete detail in the piece, note what's working. No preamble. No encouragement. Assessment only."
+  },
+  {
+    name: 'the ban',
+    instruction: "Write 100 words with The Ban active. You may not write: \"I want to,\" \"I'll try to,\" \"What I mean is,\" \"I should mention,\" \"This is,\" or \"I'm going to.\" Skip the announcement and write the thing directly.",
+    rationale: "Eliminates over-announcing — the habit of narrating process instead of doing the thing, apologizing for the reader's experience, explaining what's about to happen instead of just happening.",
+    feedbackPrompt: 'You are a writing coach giving direct, specific feedback on a writing exercise. The writer completed The Ban exercise. Banned phrases: "I want to," "I\'ll try to," "What I mean is," "I should mention," "This is," "I\'m going to." Also flag any announcement-style openers that narrate process instead of doing the thing directly. Respond in exactly 2-3 sentences: quote any banned or announcement phrases found exactly, note where the writing begins in the middle of the thing rather than announcing it. No preamble. No encouragement. Assessment only.'
+  },
+  {
+    name: 'write the image and stop',
+    instruction: 'Write one strong, specific image. Then stop. If you need the words, write a second image — but no explanations, no similes that explain, no sentences telling the reader how to feel.',
+    rationale: 'The impulse to explain arrives immediately after the image. Learning to recognize that impulse and resist it is the whole game. The image is complete. The next sentence is almost always a mistake.',
+    feedbackPrompt: 'You are a writing coach giving direct, specific feedback on a writing exercise. The writer completed Write the Image and Stop: write a strong, specific image then resist explaining it. Check whether the writer stopped after the image or continued to interpret it. Respond in exactly 2-3 sentences: identify the strongest image by quoting it, flag any sentences that explain what the image means or tell the reader how to feel (quote them), note whether the stopping point was right. No preamble. No encouragement. Assessment only.'
+  },
+  {
+    name: 'three endings',
+    instruction: "Take any piece of writing and write three versions of its final sentence or paragraph: (1) the summary version you'd write on autopilot, (2) an image version — specific and concrete, no wrap-up, (3) the shortest possible version — five words or fewer.",
+    rationale: "Three Endings makes the problem visible: once you've written all three, the autopilot ending is usually obviously wrong. The real ending is usually the paragraph before the final one — the essay is already done, and then one more paragraph arrives to explain it.",
+    feedbackPrompt: 'You are a writing coach giving direct, specific feedback on a writing exercise. The writer completed Three Endings: three versions of a final sentence or paragraph — the autopilot summary, an image version, and the shortest version (five words or fewer). Respond in exactly 2-3 sentences: identify which ending is strongest and why, note whether the autopilot version over-explains or wraps up too neatly, assess whether the shortest version lands. Quote from the text. No preamble. No encouragement. Assessment only.'
+  },
+  null  // Saturday — free write
+];
+
+const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
 const PROMPTS = [
   // Jan
@@ -942,14 +1102,14 @@ const PROMPTS = [
   "Write about what you'd tell yourself at the start of this year.",
 ];
 
-// ─── STATE ──────────────────────────────────────────────────────────────────
+// ─── STATE ───────────────────────────────────────────────────────────────────
 let dbToken = localStorage.getItem('db_token') || null;
 let dbRefreshToken = localStorage.getItem('db_refresh_token') || null;
 let appKey = localStorage.getItem('db_app_key') || null;
 let milestoneReached = false;
 let autoFocusTriggered = false;
 
-// ─── DATE UTILS ─────────────────────────────────────────────────────────────
+// ─── DATE UTILS ──────────────────────────────────────────────────────────────
 function todayInfo() {
   const d = new Date();
   const y = d.getFullYear();
@@ -961,10 +1121,11 @@ function todayInfo() {
   const dayOfYear = Math.floor(diff / 86400000) - 1;
   const dayNumber = Math.floor(diff / 86400000);
   const monthFile = `${y}-${m}.txt`;
-  return { y, m, day, iso, dayOfYear, dayNumber, monthFile };
+  const dayOfWeek = d.getDay();
+  return { y, m, day, iso, dayOfYear, dayNumber, monthFile, dayOfWeek };
 }
 
-// ─── INIT ───────────────────────────────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   handleOAuthCallback();
 
@@ -973,10 +1134,35 @@ window.addEventListener('load', () => {
   document.getElementById('dayOfYear').textContent = `day ${t.dayNumber} of 365`;
   document.getElementById('redirectUriDisplay').textContent = 'https://uncle-jasper.github.io/daily-writer/';
 
+  // Set up exercise for today
+  const exercise = EXERCISES[t.dayOfWeek];
+  const dayName = DAY_NAMES[t.dayOfWeek];
+  const isWeekend = t.dayOfWeek === 0 || t.dayOfWeek === 6;
+
+  document.getElementById('exerciseDayName').textContent = dayName;
+
+  if (exercise) {
+    document.getElementById('exerciseSep').textContent = ' — ';
+    document.getElementById('exerciseName').textContent = exercise.name;
+    document.getElementById('exerciseInstruction').textContent = exercise.instruction;
+    document.getElementById('exerciseRationale').textContent = exercise.rationale;
+    document.getElementById('exerciseWhyBtn').style.display = '';
+  } else {
+    // Weekend
+    document.getElementById('exerciseSep').textContent = ' — ';
+    document.getElementById('exerciseName').textContent = 'free write';
+    document.getElementById('exerciseInstruction').textContent = 'No constraint today. Bring something from your pipeline, or follow the prompt below.';
+    document.getElementById('exerciseWhyBtn').style.display = 'none';
+  }
+
+  // Set up sub-prompt
   const idx = Math.min(t.dayOfYear, PROMPTS.length - 1);
   const prompt = PROMPTS[idx] || '';
-  document.getElementById('promptText').textContent = prompt || 'free write — anything you want.';
-  if (!prompt) document.querySelector('.prompt-skip').style.display = 'none';
+  if (prompt) {
+    document.getElementById('subPromptText').textContent = prompt;
+  } else {
+    document.getElementById('subPromptWrap').style.display = 'none';
+  }
 
   updateDbUI();
 
@@ -991,12 +1177,22 @@ window.addEventListener('load', () => {
   }
 });
 
-function ignorePrompt() {
-  document.getElementById('promptText').textContent = 'free write — write about anything.';
-  document.querySelector('.prompt-skip').style.display = 'none';
+// ─── EXERCISE TOGGLES ────────────────────────────────────────────────────────
+function toggleWhy() {
+  const el = document.getElementById('exerciseRationale');
+  const btn = document.getElementById('exerciseWhyBtn');
+  const open = el.classList.toggle('open');
+  btn.textContent = open ? 'hide' : 'why this?';
 }
 
-// ─── EDITOR ─────────────────────────────────────────────────────────────────
+function toggleSubPrompt() {
+  const el = document.getElementById('subPromptText');
+  const label = document.getElementById('subPromptToggleLabel');
+  const open = el.classList.toggle('open');
+  label.textContent = open ? "today's prompt ▴" : "today's prompt ▾";
+}
+
+// ─── EDITOR ──────────────────────────────────────────────────────────────────
 function wordCount(text) {
   return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
 }
@@ -1012,6 +1208,7 @@ function onEdit(fromUser = false) {
       document.body.classList.add('focus-mode');
     }
   }
+
   const text = getText();
   const wc = wordCount(text);
   const pct = Math.min((wc / 100) * 100, 100);
@@ -1052,7 +1249,7 @@ function onEdit(fromUser = false) {
   localStorage.setItem('draft_' + t.iso, text);
 }
 
-// ─── ACTIONS ────────────────────────────────────────────────────────────────
+// ─── ACTIONS ─────────────────────────────────────────────────────────────────
 function copyText() {
   const text = getText();
   if (!text.trim()) { showToast('nothing to copy.'); return; }
@@ -1071,7 +1268,7 @@ function downloadTxt() {
   a.click();
 }
 
-// ─── DROPBOX OAUTH (PKCE) ───────────────────────────────────────────────────
+// ─── DROPBOX OAUTH (PKCE) ────────────────────────────────────────────────────
 function openSetup() {
   if (dbToken) {
     if (confirm('Disconnect Dropbox?')) {
@@ -1085,9 +1282,18 @@ function openSetup() {
   }
   document.getElementById('setupOverlay').classList.add('open');
   if (appKey) document.getElementById('appKeyInput').value = appKey;
+  const ak = localStorage.getItem('anthropic_key');
+  if (ak) document.getElementById('anthropicKeyInput').value = ak;
 }
 
 function closeSetup() {
+  // Save Anthropic key if present
+  const ak = document.getElementById('anthropicKeyInput').value.trim();
+  if (ak) {
+    localStorage.setItem('anthropic_key', ak);
+  } else {
+    localStorage.removeItem('anthropic_key');
+  }
   document.getElementById('setupOverlay').classList.remove('open');
 }
 
@@ -1096,6 +1302,11 @@ async function startAuth() {
   if (!key) { showToast('paste your app key first.'); return; }
   appKey = key;
   localStorage.setItem('db_app_key', key);
+
+  // Also save Anthropic key before navigating away
+  const ak = document.getElementById('anthropicKeyInput').value.trim();
+  if (ak) localStorage.setItem('anthropic_key', ak);
+  else localStorage.removeItem('anthropic_key');
 
   const verifier = generateVerifier();
   const challenge = await generateChallenge(verifier);
@@ -1190,7 +1401,7 @@ async function refreshAccessToken() {
   return false;
 }
 
-// ─── DROPBOX SAVE ───────────────────────────────────────────────────────────
+// ─── DROPBOX SAVE ────────────────────────────────────────────────────────────
 async function saveToDropbox() {
   const text = getText().trim().replace(/\n{2,}/g, '\n\n');
   if (!text || wordCount(text) < 100) { showToast('write at least 100 words first.'); return; }
@@ -1215,15 +1426,12 @@ async function saveToDropbox() {
     }
   } catch (e) {}
 
-  // Entry format: blank line before heading, blank line before content
   const entry = `\n## ${t.iso}\n\n${text}\n`;
 
   if (existingContent.includes(`## ${t.iso}`)) {
-    // Replace existing entry for today
     const regex = new RegExp(`\n## ${t.iso}\\n[\\s\\S]*?(?=\n## \\d{4}-\\d{2}-\\d{2}|$)`);
     existingContent = existingContent.replace(regex, entry);
   } else {
-    // Trim trailing whitespace from existing, then append
     existingContent = existingContent.trimEnd() + '\n' + entry;
   }
 
@@ -1247,6 +1455,13 @@ async function saveToDropbox() {
       localStorage.setItem('saved_' + t.iso, '1');
       document.getElementById('doneTodayBadge').classList.add('visible');
       showToast(`saved to ${t.monthFile}`);
+
+      // Trigger AI feedback on weekdays only
+      const exercise = EXERCISES[t.dayOfWeek];
+      const anthropicKey = localStorage.getItem('anthropic_key');
+      if (exercise && anthropicKey) {
+        triggerFeedback(text, exercise, t.dayOfWeek);
+      }
     } else {
       const err = await upResp.json();
       if (err.error && err.error['.tag'] === 'expired_access_token') {
@@ -1271,7 +1486,54 @@ async function saveToDropbox() {
   }
 }
 
-// ─── UI HELPERS ─────────────────────────────────────────────────────────────
+// ─── AI FEEDBACK ─────────────────────────────────────────────────────────────
+function triggerFeedback(text, exercise, dayOfWeek) {
+  const dayName = DAY_NAMES[dayOfWeek];
+  document.getElementById('feedbackTitle').textContent = `${dayName} — ${exercise.name}`;
+  document.getElementById('feedbackBody').innerHTML = '<span class="feedback-loading">checking your work…</span>';
+  document.getElementById('feedbackOverlay').classList.add('open');
+
+  getFeedback(text, exercise).then(feedback => {
+    const body = document.getElementById('feedbackBody');
+    body.textContent = feedback || 'feedback unavailable — check your Anthropic API key in settings.';
+  });
+}
+
+async function getFeedback(text, exercise) {
+  const anthropicKey = localStorage.getItem('anthropic_key');
+  if (!anthropicKey) return null;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
+        system: exercise.feedbackPrompt,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+    const data = await resp.json();
+    if (data.content && data.content[0] && data.content[0].text) {
+      return data.content[0].text;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function closeFeedback() {
+  document.getElementById('feedbackOverlay').classList.remove('open');
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────────────────────────
 function updateDbUI() {
   const dot = document.getElementById('dbDot');
   const label = document.getElementById('dbStatusLabel');
@@ -1302,7 +1564,11 @@ document.getElementById('setupOverlay').addEventListener('click', function (e) {
   if (e.target === this) closeSetup();
 });
 
-// ─── SERVICE WORKER ─────────────────────────────────────────────────────────
+document.getElementById('feedbackOverlay').addEventListener('click', function (e) {
+  if (e.target === this) closeFeedback();
+});
+
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/daily-writer/sw.js').then(reg => {
     reg.addEventListener('updatefound', () => {
