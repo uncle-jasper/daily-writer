@@ -1576,24 +1576,10 @@ async function saveToDropbox() {
 
 // ─── ENTRY LOG ───────────────────────────────────────────────────────────────
 const LOG_MAX = 10;
+const LOG_PATH = DROPBOX_FOLDER + '/log.json';
 
-function saveLog(iso, exerciseName, wc, text, feedback) {
-  localStorage.setItem('log_' + iso, JSON.stringify({
-    date: iso, exerciseName: exerciseName || null,
-    wordCount: wc, text, feedback: feedback || null
-  }));
-  pruneLog();
-}
-
-function pruneLog() {
-  Object.keys(localStorage)
-    .filter(k => k.startsWith('log_'))
-    .sort().reverse()
-    .slice(LOG_MAX)
-    .forEach(k => localStorage.removeItem(k));
-}
-
-function getLog() {
+// ── local helpers ──
+function localLogEntries() {
   return Object.keys(localStorage)
     .filter(k => k.startsWith('log_'))
     .sort().reverse()
@@ -1601,37 +1587,112 @@ function getLog() {
     .filter(Boolean);
 }
 
-function openHistory() {
-  const entries = getLog();
+function writeLocalLog(entries) {
+  // clear old local entries then write the merged set
+  Object.keys(localStorage).filter(k => k.startsWith('log_')).forEach(k => localStorage.removeItem(k));
+  entries.forEach(e => localStorage.setItem('log_' + e.date, JSON.stringify(e)));
+}
+
+function mergeEntries(a, b) {
+  // deduplicate by date — prefer entry with feedback
+  const map = {};
+  [...a, ...b].forEach(e => {
+    if (!map[e.date] || (!map[e.date].feedback && e.feedback)) map[e.date] = e;
+  });
+  return Object.values(map).sort((x, y) => y.date.localeCompare(x.date)).slice(0, LOG_MAX);
+}
+
+// ── Dropbox log read / write ──
+async function readDropboxLog() {
+  if (!dbToken) return [];
+  try {
+    const resp = await fetch('https://content.dropboxapi.com/2/files/download', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + dbToken,
+        'Dropbox-API-Arg': JSON.stringify({ path: LOG_PATH })
+      }
+    });
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return Array.isArray(data) ? data : [];
+  } catch(e) { return []; }
+}
+
+async function writeDropboxLog(entries) {
+  if (!dbToken) return;
+  try {
+    await fetch('https://content.dropboxapi.com/2/files/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + dbToken,
+        'Content-Type': 'application/octet-stream',
+        'Dropbox-API-Arg': JSON.stringify({ path: LOG_PATH, mode: 'overwrite', autorename: false, mute: true })
+      },
+      body: JSON.stringify(entries)
+    });
+  } catch(e) {}
+}
+
+// ── public API ──
+async function saveLog(iso, exerciseName, wc, text, feedback) {
+  const newEntry = { date: iso, exerciseName: exerciseName || null, wordCount: wc, text, feedback: feedback || null };
+  // always write locally first
+  localStorage.setItem('log_' + iso, JSON.stringify(newEntry));
+
+  if (dbToken) {
+    const remote = await readDropboxLog();
+    const merged = mergeEntries(localLogEntries(), remote);
+    writeLocalLog(merged);
+    await writeDropboxLog(merged);
+  }
+}
+
+async function openHistory() {
   const list = document.getElementById('logList');
+  document.getElementById('historyOverlay').classList.add('open');
+  list.innerHTML = '<div class="log-empty">loading…</div>';
+
+  let entries = localLogEntries();
+
+  if (dbToken) {
+    const remote = await readDropboxLog();
+    const merged = mergeEntries(entries, remote);
+    writeLocalLog(merged);
+    // write back silently if remote was missing local entries
+    if (merged.length > remote.length || remote.some(r => !merged.find(m => m.date === r.date && m.feedback === r.feedback))) {
+      await writeDropboxLog(merged);
+    }
+    entries = merged;
+  }
+
   list.innerHTML = '';
   if (!entries.length) {
     list.innerHTML = '<div class="log-empty">no entries saved yet.</div>';
-  } else {
-    entries.forEach(e => {
-      const item = document.createElement('div');
-      item.className = 'log-entry';
-      const meta = [e.wordCount + '\u00a0words', e.exerciseName].filter(Boolean).join(' · ');
-      const safeText = (e.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const safeFeedback = e.feedback
-        ? e.feedback.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        : null;
-      item.innerHTML = `
-        <div class="log-entry-header">
-          <span class="log-entry-date">${e.date}</span>
-          <span class="log-entry-meta">${meta}</span>
-        </div>
-        <div class="log-entry-body">
-          <div class="log-entry-text">${safeText}</div>
-          <div class="log-entry-feedback">${safeFeedback || '<span style="opacity:0.4">no feedback recorded</span>'}</div>
-        </div>`;
-      item.querySelector('.log-entry-header').addEventListener('click', () => {
-        item.querySelector('.log-entry-body').classList.toggle('open');
-      });
-      list.appendChild(item);
-    });
+    return;
   }
-  document.getElementById('historyOverlay').classList.add('open');
+  entries.forEach(e => {
+    const item = document.createElement('div');
+    item.className = 'log-entry';
+    const meta = [e.wordCount + '\u00a0words', e.exerciseName].filter(Boolean).join(' · ');
+    const safeText = (e.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const safeFeedback = e.feedback
+      ? e.feedback.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      : null;
+    item.innerHTML = `
+      <div class="log-entry-header">
+        <span class="log-entry-date">${e.date}</span>
+        <span class="log-entry-meta">${meta}</span>
+      </div>
+      <div class="log-entry-body">
+        <div class="log-entry-text">${safeText}</div>
+        <div class="log-entry-feedback">${safeFeedback || '<span style="opacity:0.4">no feedback recorded</span>'}</div>
+      </div>`;
+    item.querySelector('.log-entry-header').addEventListener('click', () => {
+      item.querySelector('.log-entry-body').classList.toggle('open');
+    });
+    list.appendChild(item);
+  });
 }
 
 function closeHistory() {
