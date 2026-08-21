@@ -1265,11 +1265,13 @@ async function saveToDropbox() {
       } else {
         console.error('Dropbox save failed:', upResp.status, err);
         showToast('save failed: ' + (err.error_summary || 'unknown error'));
+        alert('DEBUG — status ' + upResp.status + '\n' + JSON.stringify(err, null, 2));
       }
     }
   } catch (e) {
     console.error('Dropbox save failed (network/exception):', e);
     showToast('save failed — check connection.');
+    alert('DEBUG — exception\n' + (e && e.message ? e.message : e));
   }
 }
 
