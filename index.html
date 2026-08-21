@@ -1212,8 +1212,39 @@ async function saveToDropbox() {
     });
     if (dlResp.ok) {
       existingContent = await dlResp.text();
+    } else {
+      // Only a genuine "file doesn't exist yet" is safe to treat as empty.
+      // Any other failure (expired token, network, rate limit, etc.) must NOT
+      // fall through silently — that would overwrite the whole month's file.
+      let dlErr = {};
+      try { dlErr = await dlResp.json(); } catch (_) {}
+      const notFound = dlErr.error && dlErr.error['.tag'] === 'path'
+        && dlErr.error.path_lookup && dlErr.error.path_lookup['.tag'] === 'not_found';
+      if (!notFound) {
+        const isExpiredToken = (dlErr.error && dlErr.error['.tag'] === 'expired_access_token')
+          || JSON.stringify(dlErr).includes('expired_access_token');
+        if (isExpiredToken) {
+          showToast('token expired — refreshing…');
+          const refreshed = await refreshAccessToken();
+          if (refreshed) { await saveToDropbox(); return; }
+          dbToken = null;
+          dbRefreshToken = null;
+          localStorage.removeItem('db_token');
+          localStorage.removeItem('db_refresh_token');
+          updateDbUI();
+          showToast('session expired — reconnect dropbox. your text is still in the editor.');
+          return;
+        }
+        console.error('Dropbox download check failed:', dlResp.status, dlErr);
+        showToast('save aborted — could not verify existing file. try again.');
+        return;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('Dropbox download check failed (network/exception):', e);
+    showToast('save aborted — check connection and try again.');
+    return;
+  }
 
   // Entry format: blank line before heading, blank line before content
   const entry = `\n## ${t.iso}\n\n${text}\n`;
@@ -1249,7 +1280,9 @@ async function saveToDropbox() {
       showToast(`saved to ${t.monthFile}`);
     } else {
       const err = await upResp.json();
-      if (err.error && err.error['.tag'] === 'expired_access_token') {
+      const isExpiredToken = (err.error && err.error['.tag'] === 'expired_access_token')
+        || JSON.stringify(err).includes('expired_access_token');
+      if (isExpiredToken) {
         showToast('token expired — refreshing…');
         const refreshed = await refreshAccessToken();
         if (refreshed) {
@@ -1265,13 +1298,11 @@ async function saveToDropbox() {
       } else {
         console.error('Dropbox save failed:', upResp.status, err);
         showToast('save failed: ' + (err.error_summary || 'unknown error'));
-        alert('DEBUG — status ' + upResp.status + '\n' + JSON.stringify(err, null, 2));
       }
     }
   } catch (e) {
     console.error('Dropbox save failed (network/exception):', e);
     showToast('save failed — check connection.');
-    alert('DEBUG — exception\n' + (e && e.message ? e.message : e));
   }
 }
 
