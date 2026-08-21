@@ -1,4 +1,4 @@
-const CACHE = 'daily-writer-v2';
+const CACHE = 'daily-writer-v3';
 const ASSETS = [
   '/daily-writer/',
   '/daily-writer/index.html',
