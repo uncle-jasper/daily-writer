@@ -1515,7 +1515,7 @@ async function saveToDropbox() {
       let dlErr = {};
       try { dlErr = await dlResp.json(); } catch (_) {}
       const notFound = dlErr.error && dlErr.error['.tag'] === 'path'
-        && dlErr.error.path_lookup && dlErr.error.path_lookup['.tag'] === 'not_found';
+        && dlErr.error.path && dlErr.error.path['.tag'] === 'not_found';
       if (!notFound) {
         const isExpiredToken = (dlErr.error && dlErr.error['.tag'] === 'expired_access_token')
           || JSON.stringify(dlErr).includes('expired_access_token');
